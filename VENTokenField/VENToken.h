@@ -27,7 +27,8 @@
 @property (assign, nonatomic) BOOL highlighted;
 @property (copy, nonatomic) void (^didTapTokenBlock) (void);
 @property (strong, nonatomic) UIColor *colorScheme;
+@property (strong, nonatomic) IBOutlet UILabel *titleLabel;
 
-- (void)setTitleText:(NSString *)text;
+- (void)setTitleText:(NSAttributedString *)text;
 
 @end

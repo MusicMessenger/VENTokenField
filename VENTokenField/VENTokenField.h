@@ -47,7 +47,7 @@
 - (void)reloadData;
 - (void)collapse;
 - (NSString *)inputText;
-
+- (NSAttributedString *)attributeString:(NSString *)string;
 
 /**-----------------------------------------------------------------------------
  * @name Customization
@@ -55,6 +55,7 @@
  */
 
 @property (assign, nonatomic) CGFloat maxHeight;
+@property (assign, nonatomic) CGFloat defaultHeight;
 @property (assign, nonatomic) CGFloat verticalInset;
 @property (assign, nonatomic) CGFloat horizontalInset;
 @property (assign, nonatomic) CGFloat tokenPadding;

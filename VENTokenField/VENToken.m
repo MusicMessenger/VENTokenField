@@ -24,7 +24,6 @@
 
 @interface VENToken ()
 @property (strong, nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
-@property (strong, nonatomic) IBOutlet UILabel *titleLabel;
 @property (strong, nonatomic) IBOutlet UIView *backgroundView;
 @end
 
@@ -48,10 +47,10 @@
     [self addGestureRecognizer:self.tapGestureRecognizer];
 }
 
-- (void)setTitleText:(NSString *)text
+- (void)setTitleText:(NSAttributedString *)text
 {
-    self.titleLabel.text = text;
-    self.titleLabel.textColor = self.colorScheme;
+    //Text has to be attributed for the comma colored black
+    self.titleLabel.attributedText = text;
     [self.titleLabel sizeToFit];
     self.frame = CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.titleLabel.frame) + 3, CGRectGetHeight(self.frame));
     [self.titleLabel sizeToFit];
