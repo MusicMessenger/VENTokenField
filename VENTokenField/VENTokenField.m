@@ -122,7 +122,7 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     BOOL inputFieldShouldBecomeFirstResponder = self.inputTextField.isFirstResponder;
     
     [self.collapsedLabel removeFromSuperview];
-    [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    // [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     self.scrollView.hidden = NO;
     [self removeGestureRecognizer:self.tapGestureRecognizer];
     
