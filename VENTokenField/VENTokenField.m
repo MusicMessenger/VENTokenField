@@ -123,6 +123,13 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     
     [self.collapsedLabel removeFromSuperview];
     // [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
+    //Remove subviews, otherthan scroll indicators to allow them visibility. 
+        for (id object in self.scrollView.subviews) {
+        if (![object isKindOfClass:[UIImageView class]]) {
+            [object removeFromSuperview];
+        }
+    }
+    
     self.scrollView.hidden = NO;
     [self removeGestureRecognizer:self.tapGestureRecognizer];
     
