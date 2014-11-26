@@ -26,7 +26,7 @@
 #import "VENToken.h"
 #import "VENBackspaceTextField.h"
 
-static const CGFloat VENTokenFieldDefaultVerticalInset      = 7.0;
+static const CGFloat VENTokenFieldDefaultVerticalInset      = 3.0;
 static const CGFloat VENTokenFieldDefaultHorizontalInset    = 15.0;
 static const CGFloat VENTokenFieldDefaultToLabelPadding     = 5.0;
 static const CGFloat VENTokenFieldDefaultTokenPadding       = 2.0;
@@ -35,9 +35,11 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 88.0;
 static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 
-@interface VENTokenField () <VENBackspaceTextFieldDelegate>
+@interface VENTokenField () <VENBackspaceTextFieldDelegate, UIScrollViewDelegate, UIGestureRecognizerDelegate> {
+    BOOL _isFirstResponder;
+}
 
-@property (strong, nonatomic) NSMutableArray *tokens;
+//@property (strong, nonatomic) NSMutableArray *tokens;
 @property (assign, nonatomic) CGFloat originalHeight;
 @property (strong, nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
 @property (strong, nonatomic) VENBackspaceTextField *invisibleTextField;
@@ -94,6 +96,13 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     
     self.originalHeight = CGRectGetHeight(self.frame);
     
+    _isFirstResponder = NO;
+    
+    self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+    [self addGestureRecognizer:self.tapGestureRecognizer];
+    self.tapGestureRecognizer.numberOfTapsRequired = 1;
+    self.tapGestureRecognizer.delegate = self;
+
     // Add invisible text field to handle backspace when we don't have a real first responder.
     [self layoutInvisibleTextField];
     
@@ -112,9 +121,11 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     [self layoutToLabelInView:self origin:CGPointMake(self.horizontalInset, self.verticalInset) currentX:&currentX];
     [self layoutCollapsedLabelWithCurrentX:&currentX];
     
-    self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self
-                                                                        action:@selector(handleSingleTap:)];
-    [self addGestureRecognizer:self.tapGestureRecognizer];
+//    self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
+//    [self addGestureRecognizer:self.tapGestureRecognizer];
+//    self.tapGestureRecognizer.numberOfTapsRequired = 1;
+//    self.tapGestureRecognizer.delegate = self;
+
 }
 
 - (void)reloadData
@@ -124,14 +135,18 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     [self.collapsedLabel removeFromSuperview];
     // [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
     //Remove subviews, otherthan scroll indicators to allow them visibility. 
-        for (id object in self.scrollView.subviews) {
-        if (![object isKindOfClass:[UIImageView class]]) {
-            [object removeFromSuperview];
-        }
-    }
+//        for (id object in self.scrollView.subviews) {
+//        if (![object isKindOfClass:[UIImageView class]]) {
+//            [object removeFromSuperview];
+//        }
+//    }
+    
+    [self.inputTextField removeFromSuperview];
+
+    [self.tokens makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     self.scrollView.hidden = NO;
-    [self removeGestureRecognizer:self.tapGestureRecognizer];
+//    [self removeGestureRecognizer:self.tapGestureRecognizer];
     
     self.tokens = [NSMutableArray array];
     
@@ -140,7 +155,7 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     
     [self layoutToLabelInView:self.scrollView origin:CGPointZero currentX:&currentX];
     [self layoutTokensWithCurrentX:&currentX currentY:&currentY];
-    [self layoutInputTextFieldWithCurrentX:&currentX currentY:&currentY];
+    [self layoutInputTextFieldWithCurrentX:&currentX currentY:&currentY isFirstResponder:_isFirstResponder];
     
     [self adjustHeightForCurrentY:currentY];
     [self.scrollView setContentSize:CGSizeMake(self.scrollView.contentSize.width, currentY + [self heightForToken])];
@@ -209,13 +224,20 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     [self addSubview:self.scrollView];
 }
 
-- (void)layoutInputTextFieldWithCurrentX:(CGFloat *)currentX currentY:(CGFloat *)currentY
+- (void)layoutInputTextFieldWithCurrentX:(CGFloat *)currentX currentY:(CGFloat *)currentY isFirstResponder:(BOOL)isFirstResponder
 {
     CGFloat inputTextFieldWidth = self.scrollView.contentSize.width - *currentX;
-    if (inputTextFieldWidth < self.minInputWidth) {
+//    if (inputTextFieldWidth < self.minInputWidth) {
+    if (inputTextFieldWidth >= self.scrollView.contentSize.width-self.minInputWidth) {
         inputTextFieldWidth = self.scrollView.contentSize.width;
         *currentY += [self heightForToken];
         *currentX = 0;
+    }
+    if (inputTextFieldWidth < self.minInputWidth && isFirstResponder) {
+        inputTextFieldWidth = self.scrollView.contentSize.width;
+        *currentY += [self heightForToken];
+        *currentX = 0;
+//        _isFirstResponder = NO;
     }
     
     VENBackspaceTextField *inputTextField = self.inputTextField;
@@ -301,7 +323,20 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 - (CGFloat)heightForToken
 {
-    return 30;
+    return 29;
+}
+
+- (void)setHeight:(CGFloat)newHeight animate:(BOOL)animate withDuration:(CGFloat)duration {
+    CGRect newFrame = self.frame;
+    newFrame.size.height = newHeight;
+
+    if (animate) {
+        [UIView animateWithDuration:duration delay:0.0f options:UIViewAnimationOptionCurveEaseInOut animations:^{
+            self.frame = newFrame;
+        } completion:nil];
+    } else {
+        self.frame = newFrame;
+    }
 }
 
 - (void)layoutInvisibleTextField
@@ -316,9 +351,9 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 - (void)inputTextFieldBecomeFirstResponder
 {
-    if (self.inputTextField.isFirstResponder) {
-        return;
-    }
+//    if (self.inputTextField.isFirstResponder) {
+//        return;
+//    }
     
     [self.inputTextField becomeFirstResponder];
     if ([self.delegate respondsToSelector:@selector(tokenFieldDidBeginEditing:)]) {
@@ -344,18 +379,27 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 - (void)adjustHeightForCurrentY:(CGFloat)currentY
 {
+    CGFloat duration = 0.3f;
+    CGFloat currentX = self.toLabel.hidden ? CGRectGetMinX(self.toLabel.frame) : CGRectGetMaxX(self.toLabel.frame) + VENTokenFieldDefaultToLabelPadding;
+
     if (currentY + [self heightForToken] > CGRectGetHeight(self.frame)) { // needs to grow
         if (currentY + [self heightForToken] <= self.maxHeight) {
             [self setHeight:currentY + [self heightForToken] + self.verticalInset * 2];
+            [self layoutToLabelInView:self origin:CGPointMake(self.horizontalInset, self.verticalInset) currentX:&currentX];
         } else {
             [self setHeight:self.maxHeight];
         }
     } else { // needs to shrink
         if (currentY + [self heightForToken] > self.originalHeight) {
             [self setHeight:currentY + [self heightForToken] + self.verticalInset * 2];
+            [self layoutToLabelInView:self origin:CGPointMake(self.horizontalInset, self.verticalInset) currentX:&currentX];
         } else {
             [self setHeight:self.originalHeight];
         }
+    }
+    if (self.height != self.maxHeight || ((self.height == self.maxHeight) && _isFirstResponder)) {
+//        _isFirstResponder = NO;
+        [self.delegate tokenField:self didChangeHeight:self.height withAnimation:YES andDuration:duration];
     }
 }
 
@@ -392,6 +436,7 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 - (void)handleSingleTap:(UITapGestureRecognizer *)gestureRecognizer
 {
+    _isFirstResponder = YES;
     [self becomeFirstResponder];
 }
 
@@ -451,6 +496,24 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
     }
 }
 
+#pragma mark - UIGestureRecogniser Delegation
+
+-(BOOL)gestureRecognizer:(UIGestureRecognizer *)gestureRecognizer shouldRecognizeSimultaneouslyWithGestureRecognizer:(UIGestureRecognizer *)otherGestureRecognizer {
+    if ([gestureRecognizer isKindOfClass:[UITapGestureRecognizer class]] && [self.tapGestureRecognizer.delegate isKindOfClass:[VENToken class]]) {
+        return YES;
+    }
+    return NO;
+}
+
+#pragma mark - UIScrollView Delegation
+-(void)scrollViewDidScroll:(UIScrollView *)scrollView {
+    //Don't scroll if token's hight is below max
+    if (self.frame.size.height <= self.maxHeight-1) {
+        [self.scrollView setScrollEnabled:NO];
+    } else {
+        [self.scrollView setScrollEnabled:YES];
+    }
+}
 
 #pragma mark - Data Source
 
@@ -483,6 +546,9 @@ static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
+    _isFirstResponder = NO;
+    [self reloadData];
+    
     if ([self.delegate respondsToSelector:@selector(tokenField:didEnterText:)]) {
         //        if ([textField.text length]) {
         if (textField == self.invisibleTextField) {
