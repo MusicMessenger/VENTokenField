@@ -29,6 +29,7 @@
 - (void)tokenField:(VENTokenField *)tokenField didDeleteTokenAtIndex:(NSUInteger)index;
 - (void)tokenField:(VENTokenField *)tokenField didChangeText:(NSString *)text;
 - (void)tokenFieldDidBeginEditing:(VENTokenField *)tokenField;
+- (void)tokenField:(VENTokenField *)tokenField didChangeHeight:(CGFloat)newHeight withAnimation:(BOOL)animate andDuration:(CGFloat)duration;
 @end
 
 @protocol VENTokenFieldDataSource <NSObject>
@@ -69,6 +70,7 @@
 @property (strong, nonatomic) UILabel *toLabel;
 @property (strong, nonatomic) UIScrollView *scrollView;
 
+@property (strong, nonatomic) NSMutableArray *tokens;
 @property (copy, nonatomic) NSString *placeholderText;
 
 - (void)setColorScheme:(UIColor *)color;
