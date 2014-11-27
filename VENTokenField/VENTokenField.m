@@ -372,18 +372,24 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 
 - (void)adjustHeightForCurrentY:(CGFloat)currentY
 {
+    CGFloat newHeight;
     CGFloat duration = 0.3f;
+    
     if (currentY + [self heightForToken] > CGRectGetHeight(self.frame)) { // needs to grow
         if (currentY + [self heightForToken] <= self.maxHeight) {
-            [self setHeight:currentY + [self heightForToken] + self.verticalInset * 2];
+            newHeight = currentY + [self heightForToken] + self.verticalInset * 2;
+            [self setHeight:newHeight animate:YES withDuration:duration forView:self];
         } else {
-            [self setHeight:self.maxHeight + 6];
+            newHeight = self.maxHeight + 6;
+            [self setHeight:newHeight animate:YES withDuration:duration forView:self];
         }
     } else { // needs to shrink
         if (currentY + [self heightForToken] > self.originalHeight) {
-            [self setHeight:currentY + [self heightForToken] + self.verticalInset * 2];
+            newHeight = currentY + [self heightForToken] + self.verticalInset * 2;
+            [self setHeight:newHeight animate:YES withDuration:duration forView:self];
         } else {
-            [self setHeight:self.originalHeight];
+            newHeight = self.originalHeight;
+            [self setHeight:newHeight animate:YES withDuration:duration forView:self];
         }
     }
     //Send a message to delegate regarding height changes
