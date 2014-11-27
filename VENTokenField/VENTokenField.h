@@ -68,9 +68,7 @@
 @property (strong, nonatomic) UIColor *inputTextFieldTextColor;
 
 @property (strong, nonatomic) UILabel *toLabel;
-@property (strong, nonatomic) UIScrollView *scrollView;
 
-@property (strong, nonatomic) NSMutableArray *tokens;
 @property (copy, nonatomic) NSString *placeholderText;
 
 - (void)setColorScheme:(UIColor *)color;
