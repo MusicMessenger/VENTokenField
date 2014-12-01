@@ -362,7 +362,7 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
         _toLabel.font = [UIFont fontWithName:@"HelveticaNeue" size:15.5];
         _toLabel.x = 0;
         [_toLabel sizeToFit];
-        [self setHeight:[self heightForToken] animate:YES withDuration:0.3f forView:_toLabel];
+        [_toLabel setHeight:[self heightForToken]];
     }
     if (![_toLabel.text isEqualToString:_toLabelText]) {
         _toLabel.text = _toLabelText;
