@@ -21,6 +21,7 @@
 // THE SOFTWARE.
 
 #import <UIKit/UIKit.h>
+#import "VENBackspaceTextField.h"
 
 @class VENTokenField;
 @protocol VENTokenFieldDelegate <NSObject>
@@ -70,6 +71,8 @@
 @property (strong, nonatomic) UILabel *toLabel;
 
 @property (copy, nonatomic) NSString *placeholderText;
+
+@property (strong, nonatomic) VENBackspaceTextField *inputTextField;
 
 - (void)setColorScheme:(UIColor *)color;
 
