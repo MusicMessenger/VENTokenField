@@ -24,7 +24,6 @@
 
 #import <FrameAccessor/FrameAccessor.h>
 #import "VENToken.h"
-#import "VENBackspaceTextField.h"
 
 static const CGFloat VENTokenFieldDefaultHeight             = 44.0;
 
@@ -45,7 +44,6 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 @property (assign, nonatomic) CGFloat originalHeight;
 @property (strong, nonatomic) UITapGestureRecognizer *tapGestureRecognizer;
 @property (strong, nonatomic) VENBackspaceTextField *invisibleTextField;
-@property (strong, nonatomic) VENBackspaceTextField *inputTextField;
 @property (strong, nonatomic) UIColor *colorScheme;
 @property (strong, nonatomic) UILabel *collapsedLabel;
 @property (strong, nonatomic) UIScrollView *scrollView;
@@ -534,7 +532,6 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
     _isFirstResponder = NO;
-    [self reloadData];
     
     if ([self.delegate respondsToSelector:@selector(tokenField:didEnterText:)]) {
         //        if ([textField.text length]) {
@@ -545,6 +542,8 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
         
         //        }
     }
+    [self reloadData];
+
     return YES;
 }
 
