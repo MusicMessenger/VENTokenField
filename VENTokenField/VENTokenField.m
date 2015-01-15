@@ -37,7 +37,9 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 
 @interface VENTokenField () <VENBackspaceTextFieldDelegate, UIGestureRecognizerDelegate> {
     BOOL _isFirstResponder;
+    BOOL _isLineBreak;
     CGFloat _heightestHeight;
+    CGFloat _contentSizeHeight;
 }
 
 @property (strong, nonatomic) NSMutableArray *tokens;
@@ -98,7 +100,8 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     self.originalHeight = CGRectGetHeight(self.frame);
     
     _isFirstResponder = NO;
-    
+    _isLineBreak = NO;
+
     self.tapGestureRecognizer = [[UITapGestureRecognizer alloc] initWithTarget:self action:@selector(handleSingleTap:)];
     [self addGestureRecognizer:self.tapGestureRecognizer];
     self.tapGestureRecognizer.numberOfTapsRequired = 1;
@@ -129,6 +132,11 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 {
     BOOL inputFieldShouldBecomeFirstResponder = self.inputTextField.isFirstResponder;
     
+    if (_isLineBreak) {
+        [self.scrollView setContentOffsetY:_contentSizeHeight];
+        _isLineBreak = NO;
+    }
+
     [self.collapsedLabel removeFromSuperview];
     // [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
 
@@ -284,18 +292,33 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
         [token setTitleText:[self attributeString:[NSString stringWithFormat:@"\u200E%@\u200E",title]]];
         
         [self.tokens addObject:token];
+        CGFloat tokenWidth = token.width;
         
         if (*currentX + token.width <= self.scrollView.contentSize.width) { // token fits in current line
             token.frame = CGRectMake(*currentX, *currentY, token.width, token.height);
         } else {
-            *currentY += token.height;
-            *currentX = 0;
-            CGFloat tokenWidth = token.width;
             if (tokenWidth > self.scrollView.contentSize.width) { // token is wider than max width
-                tokenWidth = self.scrollView.contentSize.width;
+                CGFloat delta = 26;
+                if (*currentX <= delta) {
+                    *currentX = delta;
+                } else {
+                    *currentX = 0;
+                    *currentY += token.height;
+                    delta = 5;
+                }
+                tokenWidth = self.scrollView.contentSize.width-delta;
+                token.titleLabel.frame = CGRectMake(token.titleLabel.frame.origin.x, token.titleLabel.frame.origin.y, tokenWidth, token.titleLabel.frame.size.height);
+            } else {
+                *currentY += token.height;
+                *currentX = 0;
+            }
+//            CGFloat tokenWidth = token.width;
+//            if (tokenWidth > self.scrollView.contentSize.width) { // token is wider than max width
+//                tokenWidth = self.scrollView.contentSize.width-10;
+//                token.titleLabel.frame = CGRectMake(token.titleLabel.frame.origin.x, token.titleLabel.frame.origin.y, tokenWidth, token.titleLabel.frame.size.height);
             }
             token.frame = CGRectMake(*currentX, *currentY, tokenWidth, token.height);
-        }
+//        }
         *currentX += token.width + self.tokenPadding;
         [self.scrollView addSubview:token];
     }
@@ -433,6 +456,48 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 
 - (void)inputTextFieldDidChange:(UITextField *)textField
 {
+    //Get the siz of the entered text
+    CGSize size = [textField.text sizeWithFont:[UIFont fontWithName:@"HelveticaNeue-Medium" size:15]];
+    //If typing exceeded the width of the screen, need to break a line
+    if (textField.x + size.width > self.scrollView.contentSize.width-10) {
+        //Don't break a line if the size of the text is bigger then scroll's width
+        if (size.width < self.scrollView.contentSize.width-20) {
+            CGFloat newHeight = 0;
+            CGFloat newYposition = self.scrollView.contentSizeHeight;
+            //Before reaching maxHeight, we can fit 3 lines, so first deal with line 1 and line 2
+            if (self.height < self.maxHeight) {
+                if (self.height <= self.originalHeight) {
+                    newHeight = self.scrollView.contentOffsetY + [self heightForToken] + self.verticalInset * 2;
+                } else {
+                    newHeight = self.height + [self heightForToken];
+                }
+            } else {
+                //Reached the height limit, need to refresh the scrollView
+                [self.collapsedLabel removeFromSuperview];
+                [self.tokens makeObjectsPerformSelector:@selector(removeFromSuperview)];
+                self.tokens = [NSMutableArray array];
+
+                //Set values to return to when reloading data again, so the display won't freeze
+                _contentSizeHeight = self.scrollView.contentOffsetY;
+                _isLineBreak = YES;
+
+                CGFloat currentX = 25.5;
+                CGFloat currentY = 0.0;
+                [self layoutTokensWithCurrentX:&currentX currentY:&currentY];
+                newHeight = currentY;
+            }
+            //Finally, break a line
+            self.inputTextField.frame = CGRectMake(0, newYposition, self.scrollView.contentSize.width, textField.height);
+            //Adjust new height for the view and in there call delegate to animate
+            [self adjustHeightForCurrentY:newHeight];
+            //Set new height for scrollView
+            [self.scrollView setContentSize:CGSizeMake(self.scrollView.contentSize.width, newHeight+1 + [self heightForToken])];
+
+            [self setScrollViewEnabled];
+            [self focusInputTextField];
+        }
+    }
+    
     if ([self.delegate respondsToSelector:@selector(tokenField:didChangeText:)]) {
         [self.delegate tokenField:self didChangeText:textField.text];
     }
