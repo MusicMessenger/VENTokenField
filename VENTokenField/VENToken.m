@@ -51,6 +51,9 @@
 {
     //Text has to be attributed for the comma colored black
     self.titleLabel.attributedText = text;
+
+    self.titleLabel.lineBreakMode = NSLineBreakByTruncatingTail;
+
     [self.titleLabel sizeToFit];
     self.frame = CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.titleLabel.frame) + 3, CGRectGetHeight(self.frame));
     [self.titleLabel sizeToFit];
