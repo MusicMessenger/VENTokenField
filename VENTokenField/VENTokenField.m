@@ -40,6 +40,7 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     BOOL _isLineBreak;
     CGFloat _heightestHeight;
     CGFloat _contentSizeHeight;
+    BOOL _loaded;
 }
 
 @property (strong, nonatomic) NSMutableArray *tokens;
@@ -59,14 +60,30 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 {
     self = [super initWithFrame:frame];
     if (self) {
-        [self setUpInit];
+
     }
     return self;
 }
 
 - (void)awakeFromNib
 {
+    [super awakeFromNib];
     [self setUpInit];
+}
+
+- (void)layoutSubviews {
+    [super layoutSubviews];
+    
+    if (!_loaded) {
+        _loaded = YES;
+        // Add invisible text field to handle backspace when we don't have a real first responder.
+        [self layoutInvisibleTextField];
+        
+        [self layoutScrollView];
+        
+        [self reloadData];
+
+    }
 }
 
 - (BOOL)becomeFirstResponder
@@ -107,12 +124,12 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     self.tapGestureRecognizer.numberOfTapsRequired = 1;
     self.tapGestureRecognizer.delegate = self;
 
-    // Add invisible text field to handle backspace when we don't have a real first responder.
-    [self layoutInvisibleTextField];
+//    // Add invisible text field to handle backspace when we don't have a real first responder.
+//    [self layoutInvisibleTextField];
+//    
+//    [self layoutScrollView];
     
-    [self layoutScrollView];
-    
-    [self reloadData];
+//    [self reloadData];
 }
 
 - (void)collapse
