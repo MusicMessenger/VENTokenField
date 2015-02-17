@@ -56,7 +56,14 @@
 
     [self.titleLabel sizeToFit];
     self.frame = CGRectMake(CGRectGetMinX(self.frame), CGRectGetMinY(self.frame), CGRectGetMaxX(self.titleLabel.frame) + 3, CGRectGetHeight(self.frame));
-    [self.titleLabel sizeToFit];
+
+    CGRect frame = _titleLabel.frame;
+    //Set universal height size for label
+    frame.size.height += 3;
+    
+    CGFloat deltaH = (frame.size.height - _titleLabel.frame.size.height) / 2;
+    frame.origin.y -= deltaH;
+    _titleLabel.frame = frame;
 }
 
 - (void)setHighlighted:(BOOL)highlighted
