@@ -392,6 +392,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
     
     [self.inputTextField becomeFirstResponder];
     [self.inputTextField setText:kTextEmpty];
+    _inputTextField.alpha = 1.0;
     if ([self.delegate respondsToSelector:@selector(tokenFieldDidBeginEditing:)]) {
         [self.delegate tokenFieldDidBeginEditing:self];
     }
@@ -656,6 +657,7 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
         VENToken *lastToken = [self.tokens lastObject];
         lastToken.highlighted = YES;
         [_inputTextField setText:kTextHidden];
+        _inputTextField.alpha = 0.0;
         return NO;
     }
     
