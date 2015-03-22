@@ -34,6 +34,8 @@ static const CGFloat VENTokenFieldDefaultTokenPadding       = 2.0;
 static const CGFloat VENTokenFieldDefaultMinInputWidth      = 5.0;
 static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 
+NSString * const kTextEmpty = @"\u200B"; // Zero-Width Space
+NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 
 @interface VENTokenField () <VENBackspaceTextFieldDelegate, UIGestureRecognizerDelegate> {
     BOOL _isFirstResponder;
@@ -158,7 +160,9 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     // [self.scrollView.subviews makeObjectsPerformSelector:@selector(removeFromSuperview)];
 
     //Remove subviews, otherthan scroll indicators to allow them visibility.
-    [self.inputTextField removeFromSuperview];
+    
+    /*==================uncomment to allow deletion repeat==================
+    [self.inputTextField removeFromSuperview];*/
     [self.tokens makeObjectsPerformSelector:@selector(removeFromSuperview)];
     
     self.scrollView.hidden = NO;
@@ -387,6 +391,7 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
 //    }
     
     [self.inputTextField becomeFirstResponder];
+    [self.inputTextField setText:kTextEmpty];
     if ([self.delegate respondsToSelector:@selector(tokenFieldDidBeginEditing:)]) {
         [self.delegate tokenFieldDidBeginEditing:self];
     }
@@ -565,6 +570,7 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
         [self inputTextFieldBecomeFirstResponder];
     } else {
         [self.invisibleTextField becomeFirstResponder];
+        [self.invisibleTextField setText:kTextHidden];
     }
 }
 
@@ -608,6 +614,15 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     return @"";
 }
 
+- (void)deleteHighlighted {
+    for (VENToken *aToken in self.tokens) {
+        if (aToken.highlighted) {
+            aToken.highlighted = NO;
+            [self deleteHighlightedToken:aToken];
+            break;
+        }
+    }
+}
 
 #pragma mark - UITextFieldDelegate
 
@@ -636,16 +651,23 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     }
 }
 
-- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string
-{
-    for (VENToken *aToken in self.tokens) {
-        if (aToken.highlighted) {
-            [self deleteHighlightedToken:aToken];
-            break;
-        }
+- (BOOL)textField:(UITextField *)textField shouldChangeCharactersInRange:(NSRange)range replacementString:(NSString *)string {
+    if (self.tokens.count && [string isEqualToString:@""] && [textField.text isEqualToString:kTextEmpty]){
+        VENToken *lastToken = [self.tokens lastObject];
+        lastToken.highlighted = YES;
+        [_inputTextField setText:kTextHidden];
+        return NO;
     }
     
-    [self unhighlightAllTokens];
+    if ([textField.text isEqualToString:kTextHidden]){
+        [self deleteHighlighted];
+        [self unhighlightAllTokens];
+
+        return (![string isEqualToString:@""]);
+    }
+
+    //If there are any highlighted tokens, delete
+    [self deleteHighlighted];
     return YES;
 }
 
@@ -654,25 +676,25 @@ static const CGFloat VENTokenFieldDefaultMaxHeight          = 150.0;
     //    [self setCursorVisibility];
 }
 
-#pragma mark - VENBackspaceTextFieldDelegate
-
-- (void)textFieldDidEnterBackspace:(VENBackspaceTextField *)textField
-{
-    if ([self.delegate respondsToSelector:@selector(tokenField:didDeleteTokenAtIndex:)] && [self numberOfTokens]) {
-        BOOL didDeleteToken = NO;
-        for (VENToken *token in self.tokens) {
-            if (token.highlighted) {
-                [self.delegate tokenField:self didDeleteTokenAtIndex:[self.tokens indexOfObject:token]];
-                didDeleteToken = YES;
-                break;
-            }
-        }
-        if (!didDeleteToken) {
-            VENToken *lastToken = [self.tokens lastObject];
-            lastToken.highlighted = YES;
-        }
-        [self setCursorVisibility];
-    }
-}
+//#pragma mark - VENBackspaceTextFieldDelegate
+//
+//- (void)textFieldDidEnterBackspace:(VENBackspaceTextField *)textField
+//{
+//    if ([self.delegate respondsToSelector:@selector(tokenField:didDeleteTokenAtIndex:)] && [self numberOfTokens]) {
+//        BOOL didDeleteToken = NO;
+//        for (VENToken *token in self.tokens) {
+//            if (token.highlighted) {
+//                [self.delegate tokenField:self didDeleteTokenAtIndex:[self.tokens indexOfObject:token]];
+//                didDeleteToken = YES;
+//                break;
+//            }
+//        }
+//        if (!didDeleteToken) {
+//            VENToken *lastToken = [self.tokens lastObject];
+//            lastToken.highlighted = YES;
+//        }
+//        [self setCursorVisibility];
+//    }
+//}
 
 @end
