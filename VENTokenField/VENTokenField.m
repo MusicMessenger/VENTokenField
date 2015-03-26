@@ -391,7 +391,9 @@ NSString * const kTextHidden = @"\u200D"; // Zero-Width Joiner
 //    }
     
     [self.inputTextField becomeFirstResponder];
-    [self.inputTextField setText:kTextEmpty];
+    if (self.tokens.count) {
+        [self.inputTextField setText:kTextEmpty];
+    }
     _inputTextField.alpha = 1.0;
     if ([self.delegate respondsToSelector:@selector(tokenFieldDidBeginEditing:)]) {
         [self.delegate tokenFieldDidBeginEditing:self];
